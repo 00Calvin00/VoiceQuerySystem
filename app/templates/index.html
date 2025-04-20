@@ -4,7 +4,12 @@
     <meta charset="UTF-8">
     <title>VoiceQuerySystem</title>
 </head>
-
 <body>
-    <h1> This site works! </h1>
+    <h1>VoiceQuerySystem</h1>
+    <button id="recordButton">Start Recording</button>
+    <p id="buttonStatus">Status: Not recording</p>
+    <p id="transcript">Transcript: <em>none yet</em></p>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+</html>

@@ -18,3 +18,13 @@ This is a project I made for my human-centered data management class that conver
 - Python venv Docs: https://docs.python.org/3/library/venv.html
 - Flask-CORS Docs: https://flask-cors.readthedocs.io/en/latest/
 - requests Docs: https://requests.readthedocs.io/en/latest/
+- Flask Static Files: https://flask.palletsprojects.com/en/2.3.x/tutorial/static/
+- FormData Web API: https://developer.mozilla.org/en-US/docs/Web/API/FormData
+- Flask File Uploads: https://flask.palletsprojects.com/en/2.3.x/patterns/fileuploads/
+- Flask render_template: https://flask.palletsprojects.com/en/2.3.x/quickstart/#rendering-templates
+- JavaScript MediaRecorder: https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
+- FormData Web API: https://developer.mozilla.org/en-US/docs/Web/API/FormData
+- Whisper Speech-to-Text: https://github.com/openai/whisper
+- FormData.append() docs: https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+- JS error handling with try/catch: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+- Best practices for status messages in UI: Nielsen Norman Group
