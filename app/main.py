@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 from app.speech_to_text import transcribe_audio
 from werkzeug.utils import secure_filename
+from app.text_to_sql import generate_sql
 
 # This file acts as the controller that responds to all browser requests. Acts as the first responder to user actions and url changes.
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -34,9 +35,18 @@ def upload_audio():
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(filepath)
 
-    # Create and return audio transcript to UI
+    # Create and return audio transcript and sql query to UI
     transcript = transcribe_audio(filepath)
-    return jsonify({"transcript": transcript})
+    sql_query = generate_sql(transcript)
+    print("🧠 SQL from agent:", sql_query)
+    
+    results = execute_sql_query(sql_query)
+    
+    return jsonify({
+        "transcript": transcript,
+        "sql": sql_query,
+        "results": results
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)

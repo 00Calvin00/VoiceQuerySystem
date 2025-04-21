@@ -6,9 +6,13 @@
 </head>
 <body>
     <h1>VoiceQuerySystem</h1>
+
     <button id="recordButton">Start Recording</button>
+
     <p id="buttonStatus">Status: Not recording</p>
     <p id="transcript">Transcript: <em>none yet</em></p>
+    <p id="sql">SQL output here: <em>none yet...</em></p>
+    <p id="results"></p>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

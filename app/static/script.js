@@ -54,6 +54,8 @@ recordButton.addEventListener("click", async () => {
             console.log("✅ Transcription result:", result);
 
             transcript.innerHTML = `Transcript: <strong>${result.transcript}</strong>`;
+            document.getElementById("sql").innerHTML = `SQL: <code>${result.sql}</code>`;
+            document.getElementById("results").innerHTML = `Results: <strong>${JSON.stringify(result.results)}</strong>`;
             buttonStatus.textContent = "Status: Transcription complete";
         } catch (err) {
             console.error("❌ Error during transcription:", error);
