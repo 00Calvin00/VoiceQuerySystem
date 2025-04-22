@@ -2,15 +2,13 @@ import os
 import re
 from dotenv import load_dotenv
 from smolagents import CodeAgent, InferenceClientModel, tool
-from sqlalchemy import create_engine, MetaData, Table, Column, String, Integer, Float, insert, inspect, text
+from sqlalchemy import Table, Column, String, Integer, Float, insert, inspect, text
 from sqlalchemy import text
-#from app.text_to_sql import engine 
+from app.database_executer import engine, metadata_obj 
 
 load_dotenv()
 
 HF_TOKEN = os.getenv("HF_TOKEN")
-engine = create_engine("sqlite:///database/test_database.db")  # You can change to memory db for testing
-metadata_obj = MetaData()
 
 # Define a sample table
 receipts = Table(
@@ -76,34 +74,77 @@ agent = CodeAgent(
 
 def generate_sql(natural_language_question: str) -> str:
     prompt = (
-        "You are an AI assistant working with an SQLite database that contains the following table:\n"
-        "Table: receipts\n"
-        "Columns:\n"
-        "- receipt_id (INTEGER)\n"
-        "- customer_name (VARCHAR)\n"
-        "- price (FLOAT)\n"
-        "- tip (FLOAT)\n\n"
-        f"Translate the following natural language question into a SQL query: \n{natural_language_question}"
+        "You are an AI assistant that translates natural language questions into SQL queries. "
+        "You are working with the Chinook SQLite database. Here are the tables and relationships:\n\n"
+        "Tables and Columns:\n"
+        "- Artist(ArtistId, Name)\n"
+        "- Album(AlbumId, Title, ArtistId)\n"
+        "- Track(TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice)\n"
+        "- MediaType(MediaTypeId, Name)\n"
+        "- Genre(GenreId, Name)\n"
+        "- Playlist(PlaylistId, Name)\n"
+        "- PlaylistTrack(PlaylistId, TrackId)\n"
+        "- Customer(CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId)\n"
+        "- Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, Address, City, State, Country, PostalCode, Phone, Fax, Email)\n"
+        "- Invoice(InvoiceId, CustomerId, InvoiceDate, BillingAddress, BillingCity, BillingState, BillingCountry, BillingPostalCode, Total)\n"
+        "- InvoiceLine(InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity)\n\n"
+        "Relationships:\n"
+        "- Artist → Album (ArtistId)\n"
+        "- Album → Track (AlbumId)\n"
+        "- Track → InvoiceLine (TrackId)\n"
+        "- Invoice → InvoiceLine (InvoiceId)\n"
+        "- Customer → Invoice (CustomerId)\n"
+        "- Employee → Customer (SupportRepId)\n"
+        "- Employee (ReportsTo → EmployeeId)\n"
+        "- Playlist → PlaylistTrack → Track\n\n"
+        "Here is an example SQL query that correctly answers the question 'Who is the artist with the most tracks sold (by quantity)?':\n"
+        "```sql\n"
+        "SELECT ar.Name, SUM(il.Quantity) AS total_quantity\n"
+        "FROM InvoiceLine il\n"
+        "JOIN Track t ON il.TrackId = t.TrackId\n"
+        "JOIN Album al ON t.AlbumId = al.AlbumId\n"
+        "JOIN Artist ar ON al.ArtistId = ar.ArtistId\n"
+        "GROUP BY ar.Name\n"
+        "ORDER BY total_quantity DESC\n"
+        "LIMIT 1;\n"
+        "```\n"
+        "Return only the final SQL query. Do not execute it. Do not print anything else.\n"
+        "**Wrap the SQL query in a markdown block like this:**\n"
+        "```sql\nSELECT ...\n```"
+        "If the question doesn't seem related to the database then return an empty select immediately.\n"
+        f"\n\nNatural language question: {natural_language_question}"
     )
+
     try:
         result = agent.run(prompt)
-        # Extract SQL query from result text
-        match = re.search(r"```sql\s+(.*?)```", result, re.DOTALL | re.IGNORECASE)
+        print("Full agent output:\n", result)
 
+        # 1. Check for clearly empty SELECT (bad output or irrelevant query)
+        if (
+            re.search(r"```sql\s*SELECT\s*(?:$|\n|```)", result.strip(), re.IGNORECASE | re.DOTALL)
+            or re.match(r"^\s*SELECT\s*$", result.strip(), re.IGNORECASE)
+        ):
+            return "Sorry, I couldn't generate a valid SQL query for that question. Please try a different question related to music, tracks, or customers in the database."
+
+        # 2. Try to extract SQL from a proper markdown code block
+        match = re.search(r"```(?:sql)?\s*(SELECT .*?)```", result, re.DOTALL | re.IGNORECASE)
         if match:
-            sql_query = match.group(1).strip()
-            return sql_query
-        else:
-            return "ERROR: Could not find SQL in model output."
+            return match.group(1).strip()
+
+        # Fallback: try to find any SELECT query
+        alt_match = re.search(r"(SELECT[\s\S]+?)(?:;|$)", result, re.IGNORECASE)
+        if alt_match:
+            return alt_match.group(1).strip()
+
+        # Fallback: if it contains SELECT and doesn't look like an error
+        if "SELECT" in result.upper() and "ERROR" not in result.upper():
+            return result.strip()
+
+        # Fallback: catch text answers or irrelevant hallucinations
+        if "ERROR" in result.upper() or "FINAL_ANSWER" in result.lower() or not re.search(r"SELECT\s", result, re.IGNORECASE):
+            return "Sorry, I couldn't generate a valid SQL query for that question. Please try a different question related to music, tracks, or customers in the database."
+
+        return "ERROR: Could not find SQL in model output."
     except Exception as e:
         print("❌ Text-to-SQL generation failed:", e)
         return "ERROR: SQL generation failed."
-
-def execute_sql_query(query):
-    try:
-        with engine.connect() as con:
-            result = con.execute(text(query))
-            return [dict(row) for row in result]
-    except Exception as e:
-        print(f"❌ SQL Execution Failed: {e}")
-        return []

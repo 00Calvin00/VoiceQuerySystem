@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>VoiceQuerySystem</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>VoiceQuerySystem</h1>
@@ -11,8 +12,9 @@
 
     <p id="buttonStatus">Status: Not recording</p>
     <p id="transcript">Transcript: <em>none yet</em></p>
-    <p id="sql">SQL output here: <em>none yet...</em></p>
-    <p id="results"></p>
+    <p id="sql">SQL output: <em>none yet...</em></p>
+    <p id="results"><em>Query Result</em></p>
+    <p id="error" class="error" style="display: none;"></p>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

@@ -4,6 +4,7 @@ import os
 from app.speech_to_text import transcribe_audio
 from werkzeug.utils import secure_filename
 from app.text_to_sql import generate_sql
+from app.database_executer import execute_sql_query
 
 # This file acts as the controller that responds to all browser requests. Acts as the first responder to user actions and url changes.
 app = Flask(__name__, static_folder="static", template_folder="templates")
@@ -23,30 +24,36 @@ def index():
 @app.route("/upload_audio", methods=["POST"])
 def upload_audio():
     print("📥 Upload route hit")
-    # Check if audio file got sent properly
     if "audio" not in request.files:
         print("⚠️ No audio found in request.files")
         return jsonify({"error": "No audio file"}), 400
 
-    # Create local file from sent over audio file
     file = request.files["audio"]
     print(f"📂 Received file: {file.filename}")
     filename = secure_filename(file.filename)
     filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
     file.save(filepath)
 
-    # Create and return audio transcript and sql query to UI
     transcript = transcribe_audio(filepath)
     sql_query = generate_sql(transcript)
     print("🧠 SQL from agent:", sql_query)
-    
+
+    if "Sorry, I couldn't generate" in sql_query or "ERROR" in sql_query.upper():
+        return jsonify({
+            "transcript": transcript,
+            "sql": sql_query,
+            "results": None,
+            "error": "❌ Unable to generate a valid SQL query from the input."
+        })
+
     results = execute_sql_query(sql_query)
-    
+
     return jsonify({
         "transcript": transcript,
         "sql": sql_query,
         "results": results
     })
+
 
 if __name__ == "__main__":
     app.run(debug=True)

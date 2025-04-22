@@ -1,0 +1,86 @@
+/* Base styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    margin: 0;
+    padding: 2rem;
+    line-height: 1.6;
+    }
+
+  /* Header */
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+    }
+
+  /* Button */
+#recordButton {
+    display: block;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#recordButton:hover {
+    background-color: #2980b9;
+}
+
+  /* Status and Result Text */
+p {
+    max-width: 700px;
+    margin: 1rem auto;
+    font-size: 1.05rem;
+    padding: 0.5rem 1rem;
+    border-left: 4px solid #3498db;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+}
+
+  /* Code formatting */
+code {
+    background-color: #dfe6e9;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Courier New', Courier, monospace;
+    color: #2c3e50;
+}
+
+  /* Results table */
+table {
+    width: 90%;
+    margin: 1rem auto;
+    border-collapse: collapse;
+    background-color: white;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+th, td {
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+.error {
+    max-width: 700px;
+    margin: 1rem auto;
+    font-size: 1.05rem;
+    padding: 0.5rem 1rem;
+    border-left: 4px solid #e74c3c;
+    background-color: #fceae9;
+    color: #c0392b;
+    border-radius: 4px;
+    font-weight: bold;
+}
