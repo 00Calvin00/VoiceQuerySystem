@@ -56,7 +56,7 @@ This drastically improved accuracy.
 
  # Core Research
 - VoiceQuerySystem Paper (SIGMOD '22): https://doi.org/10.1145/3514221.3520158
-- APIs & Frameworks
+ # APIs & Frameworks
 - OpenAI Whisper: https://github.com/openai/whisper
 - Hugging Face smolagents (Text-to-SQL): https://huggingface.co/docs/smolagents/en/examples/text_to_sql
 - Flask Web Framework: https://flask.palletsprojects.com
