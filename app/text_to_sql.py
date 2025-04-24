@@ -74,77 +74,94 @@ agent = CodeAgent(
 
 def generate_sql(natural_language_question: str) -> str:
     prompt = (
-        "You are an AI assistant that translates natural language questions into SQL queries. "
-        "You are working with the Chinook SQLite database. Here are the tables and relationships:\n\n"
-        "Tables and Columns:\n"
-        "- Artist(ArtistId, Name)\n"
-        "- Album(AlbumId, Title, ArtistId)\n"
-        "- Track(TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice)\n"
-        "- MediaType(MediaTypeId, Name)\n"
-        "- Genre(GenreId, Name)\n"
-        "- Playlist(PlaylistId, Name)\n"
-        "- PlaylistTrack(PlaylistId, TrackId)\n"
-        "- Customer(CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId)\n"
-        "- Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, Address, City, State, Country, PostalCode, Phone, Fax, Email)\n"
-        "- Invoice(InvoiceId, CustomerId, InvoiceDate, BillingAddress, BillingCity, BillingState, BillingCountry, BillingPostalCode, Total)\n"
-        "- InvoiceLine(InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity)\n\n"
-        "Relationships:\n"
-        "- Artist → Album (ArtistId)\n"
-        "- Album → Track (AlbumId)\n"
-        "- Track → InvoiceLine (TrackId)\n"
-        "- Invoice → InvoiceLine (InvoiceId)\n"
-        "- Customer → Invoice (CustomerId)\n"
-        "- Employee → Customer (SupportRepId)\n"
-        "- Employee (ReportsTo → EmployeeId)\n"
-        "- Playlist → PlaylistTrack → Track\n\n"
-        "Here is an example SQL query that correctly answers the question 'Who is the artist with the most tracks sold (by quantity)?':\n"
-        "```sql\n"
-        "SELECT ar.Name, SUM(il.Quantity) AS total_quantity\n"
-        "FROM InvoiceLine il\n"
-        "JOIN Track t ON il.TrackId = t.TrackId\n"
-        "JOIN Album al ON t.AlbumId = al.AlbumId\n"
-        "JOIN Artist ar ON al.ArtistId = ar.ArtistId\n"
-        "GROUP BY ar.Name\n"
-        "ORDER BY total_quantity DESC\n"
-        "LIMIT 1;\n"
-        "```\n"
-        "Return only the final SQL query. Do not execute it. Do not print anything else.\n"
-        "**Wrap the SQL query in a markdown block like this:**\n"
-        "```sql\nSELECT ...\n```"
-        "If the question doesn't seem related to the database then return an empty select immediately.\n"
-        f"\n\nNatural language question: {natural_language_question}"
-    )
+    "You are an AI assistant that translates natural language questions into SQL queries. "
+    "You are working with the Chinook SQLite database. Here are the tables and relationships:\n\n"
+
+    "Tables and Columns:\n"
+    "- Artist(ArtistId, Name)\n"
+    "- Album(AlbumId, Title, ArtistId)\n"
+    "- Track(TrackId, Name, AlbumId, MediaTypeId, GenreId, Composer, Milliseconds, Bytes, UnitPrice)\n"
+    "- MediaType(MediaTypeId, Name)\n"
+    "- Genre(GenreId, Name)\n"
+    "- Playlist(PlaylistId, Name)\n"
+    "- PlaylistTrack(PlaylistId, TrackId)\n"
+    "- Customer(CustomerId, FirstName, LastName, Company, Address, City, State, Country, PostalCode, Phone, Fax, Email, SupportRepId)\n"
+    "- Employee(EmployeeId, LastName, FirstName, Title, ReportsTo, BirthDate, HireDate, Address, City, State, Country, PostalCode, Phone, Fax, Email)\n"
+    "- Invoice(InvoiceId, CustomerId, InvoiceDate, BillingAddress, BillingCity, BillingState, BillingCountry, BillingPostalCode, Total)\n"
+    "- InvoiceLine(InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity)\n\n"
+
+    "Relationships:\n"
+    "- Artist → Album (ArtistId)\n"
+    "- Album → Track (AlbumId)\n"
+    "- Track → InvoiceLine (TrackId)\n"
+    "- Invoice → InvoiceLine (InvoiceId)\n"
+    "- Customer → Invoice (CustomerId)\n"
+    "- Employee → Customer (SupportRepId)\n"
+    "- Employee (ReportsTo → EmployeeId)\n"
+    "- Playlist → PlaylistTrack → Track\n\n"
+
+    "Here is an example SQL query that correctly answers the question 'Who is the artist with the most tracks sold (by quantity)?':\n"
+    "```sql\n"
+    "SELECT ar.Name, SUM(il.Quantity) AS total_quantity\n"
+    "FROM InvoiceLine il\n"
+    "JOIN Track t ON il.TrackId = t.TrackId\n"
+    "JOIN Album al ON t.AlbumId = al.AlbumId\n"
+    "JOIN Artist ar ON al.ArtistId = ar.ArtistId\n"
+    "GROUP BY ar.Name\n"
+    "ORDER BY total_quantity DESC\n"
+    "LIMIT 1;\n"
+    "```\n\n"
+
+    "**IMPORTANT INSTRUCTIONS**\n"
+    "- If the question is not related to the database schema (e.g., no relevant tables like Artist, Album, Track, etc.), DO NOT generate SQL.\n"
+    "- Instead, return this:\n"
+    "```plaintext\n"
+    "EXPLANATION: Your question does not mention any relevant table or column names from the Chinook database. Try asking about artists, albums, tracks, customers, invoices, or other relevant entities.\n"
+    "```\n"
+    "- If the question is valid, return only the SQL in a code block:\n"
+    "```sql\n"
+    "SELECT ...\n"
+    "```\n"
+    "- DO NOT print or return query results.\n"
+    "- DO NOT include any other text unless it's an EXPLANATION block.\n\n"
+
+    f"Natural language question: {natural_language_question}"
+)
+
 
     try:
-        result = agent.run(prompt)
+        result = str(agent.run(prompt)).strip()
         print("Full agent output:\n", result)
 
-        # 1. Check for clearly empty SELECT (bad output or irrelevant query)
-        if (
-            re.search(r"```sql\s*SELECT\s*(?:$|\n|```)", result.strip(), re.IGNORECASE | re.DOTALL)
-            or re.match(r"^\s*SELECT\s*$", result.strip(), re.IGNORECASE)
-        ):
-            return "Sorry, I couldn't generate a valid SQL query for that question. Please try a different question related to music, tracks, or customers in the database."
+        # Explanation block
+        if result.startswith("```plaintext") and "EXPLANATION:" in result:
+            explanation = re.search(r"EXPLANATION:(.*)", result, re.DOTALL)
+            if explanation:
+                return "EXPLANATION:" + explanation.group(1).strip()
+            return "EXPLANATION: The model detected your question is not related to the Chinook database schema."
 
-        # 2. Try to extract SQL from a proper markdown code block
+        # Executed result
+        if re.match(r"^\(?.*['\"].*['\"].*\)?$", result):
+            return f"[EXECUTED_RESULT]{result}"
+
+        # Extract SQL from markdown
         match = re.search(r"```(?:sql)?\s*(SELECT .*?)```", result, re.DOTALL | re.IGNORECASE)
         if match:
-            return match.group(1).strip()
+            extracted = match.group(1).strip()
+            if extracted.upper() in ["SELECT", "SELECT ''", "SELECT \"\"", "SELECT 'NONE' AS RESULT"]:
+                return "EXPLANATION: The model attempted to respond, but the SQL query was empty or invalid."
+            return extracted
 
-        # Fallback: try to find any SELECT query
+        # Fallback extraction
         alt_match = re.search(r"(SELECT[\s\S]+?)(?:;|$)", result, re.IGNORECASE)
         if alt_match:
             return alt_match.group(1).strip()
 
-        # Fallback: if it contains SELECT and doesn't look like an error
         if "SELECT" in result.upper() and "ERROR" not in result.upper():
             return result.strip()
 
-        # Fallback: catch text answers or irrelevant hallucinations
-        if "ERROR" in result.upper() or "FINAL_ANSWER" in result.lower() or not re.search(r"SELECT\s", result, re.IGNORECASE):
-            return "Sorry, I couldn't generate a valid SQL query for that question. Please try a different question related to music, tracks, or customers in the database."
+        return "EXPLANATION: The model could not generate a valid SQL query for this input."
 
-        return "ERROR: Could not find SQL in model output."
     except Exception as e:
         print("❌ Text-to-SQL generation failed:", e)
         return "ERROR: SQL generation failed."

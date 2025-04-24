@@ -8,8 +8,8 @@ def execute_sql_query(query):
         with engine.connect() as con:
             result = con.execute(text(query))
             rows = result.fetchall()
-            
-            # Convert SQLAlchemy row objects to dictionaries safely
+
+            # Convert SQLAlchemy rows to dicts
             column_names = result.keys()
             return [dict(zip(column_names, row)) for row in rows]
     except Exception as e:

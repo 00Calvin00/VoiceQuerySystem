@@ -1,58 +1,82 @@
-# VoiceQuerySystem
-This is a project I made for my human-centered data management class that converts speech to SQL queries and outputs them in a simple UI.
+# 🎙️ VoiceQuerySystem
 
-# REMINDERS:
- -  Anytime you reopen your terminal, you’ll need to re-activate the environment before working on the project.
- Use this command: 
- source .venv/bin/activate
-  - To run website use: python -m app.main
+A voice-powered natural language interface for querying SQL databases.
+Created for my Human-Centered Data Management class.
 
-## Debugging and Model Selection Journey
-### Agent Logs
+# 🔍 What It Does
 
-Step 1: ❌ Tried `SELECT MAX tip FROM receipts` → SQL syntax error  
-Step 2: ❌ Tried again with `MAX tip`, still failed  
-Step 3: ❌ Used `max TIP`, wrong again  
-Step 4: ✅ Finally got `ORDER BY tip DESC LIMIT 1` — perfect query!
+VoiceQuerySystem lets users ask natural language questions out loud (like:
 
-This showed how the LLM could *self-correct over multiple steps*, which made it ideal for my project.
+“Which artist sold the most tracks?”)
+...and instantly see the corresponding SQL query and the results from the Chinook SQLite database.
+It’s designed for beginners who want to explore data without needing to know SQL.
 
-Initially, I received errors such as:
+# 🚀 How to Run Locally
 
-- "Model requires Pro subscription"
-- "Model is too large to load"
-- "Token not authorized"
+ 1. Activate your virtual environment
+source .venv/bin/activate
 
-To fix this, I upgraded to Hugging Face Pro and created a new token with the right permissions (`Make calls to Inference Providers`). I also passed the token explicitly into the `InferenceClientModel()` constructor.
+ 2. Launch the web app
+python -m app.main
+Then visit http://localhost:5000 in your browser.
 
-At first, the agent hallucinated fake servers and didn’t realize it had access to real database schema. I solved this by injecting the full schema directly into the prompt:
+# 🛠️ How It Works
 
-You are an AI assistant working with an SQLite database that contains the following table: ...
+🎤 Records user speech via the MediaRecorder API
+🗣️ Converts audio to text using Whisper API (via Lemonfox)
+🧠 Translates natural language into SQL using Hugging Face + smolagents + LLaMA 3
+🧾 Runs SQL on a local SQLite database
+📊 Displays results and raw SQL in a simple, teachable UI
+🧪 Debugging & Development Notes
 
-This guided the model to write better SQL queries.
+# 🤖 Agent Self-Correction
+Step 1: ❌ Tried SELECT MAX tip FROM receipts → SQL syntax error  
+Step 2: ❌ Tried again with MAX tip → still failed  
+Step 3: ❌ Used max TIP → also failed  
+Step 4: ✅ Finally got ORDER BY tip DESC LIMIT 1 — perfect query!
+The model learned from its own mistakes — a huge reason I chose to use smolagents.
 
-# References:
-- Yuanfeng Song, Raymond Chi-Wing Wong, Xuefang Zhao, Di Jiang. “VoiceQuerySystem: A Voice-driven Database Querying System Using Natural Language Questions.” SIGMOD '22. https://doi.org/10.1145/3514221.3520158
-- OpenAI Whisper Speech-to-Text Model: https://github.com/openai/whisper
-- Hugging Face Text2SQL Space by gauravshah: https://huggingface.co/spaces/gauravshah/text2sql
-- Flask Web Framework: https://flask.palletsprojects.com
-- SQLite Docs: https://www.sqlite.org/docs.html
-- MediaRecorder API: https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
-- Flask Official Docs: https://flask.palletsprojects.com/en/2.3.x/
-- Python venv Docs: https://docs.python.org/3/library/venv.html
-- Flask-CORS Docs: https://flask-cors.readthedocs.io/en/latest/
-- requests Docs: https://requests.readthedocs.io/en/latest/
-- Flask Static Files: https://flask.palletsprojects.com/en/2.3.x/tutorial/static/
-- FormData Web API: https://developer.mozilla.org/en-US/docs/Web/API/FormData
-- Flask File Uploads: https://flask.palletsprojects.com/en/2.3.x/patterns/fileuploads/
-- Flask render_template: https://flask.palletsprojects.com/en/2.3.x/quickstart/#rendering-templates
-- JavaScript MediaRecorder: https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
-- FormData Web API: https://developer.mozilla.org/en-US/docs/Web/API/FormData
-- Whisper Speech-to-Text: https://github.com/openai/whisper
-- FormData.append() docs: https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
-- JS error handling with try/catch: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
-- Best practices for status messages in UI: Nielsen Norman Group
-- Hugging Face smolagents: https://huggingface.co/docs/smolagents/en/examples/text_to_sql
-- Python SQLAlchemy docs: https://docs.sqlalchemy.org/
-- Hugging Face Inference API: https://huggingface.co/docs/api-inference/index
-- Hugging Face token setup: https://huggingface.co/settings/tokens
+# 🧩 Token Setup & Prompt Engineering
+I initially hit issues like:
+
+"Model requires Pro subscription"
+"Token not authorized"
+"Too large to load"
+To fix this:
+
+I upgraded to Hugging Face Pro
+Generated a token with the correct Inference Provider scopes
+Explicitly passed the token into InferenceClientModel()
+To stop the model from hallucinating irrelevant databases, I injected a detailed schema into the prompt:
+
+“You are working with the Chinook SQLite database. Here are the tables and relationships...”
+This drastically improved accuracy.
+
+# 📚 References & Tools
+
+Core Research
+VoiceQuerySystem Paper (SIGMOD '22): https://doi.org/10.1145/3514221.3520158
+APIs & Frameworks
+OpenAI Whisper: https://github.com/openai/whisper
+Hugging Face smolagents (Text-to-SQL): https://huggingface.co/docs/smolagents/en/examples/text_to_sql
+Flask Web Framework: https://flask.palletsprojects.com
+SQLite Docs: https://www.sqlite.org/docs.html
+MediaRecorder API: https://developer.mozilla.org/en-US/docs/Web/API/MediaRecorder
+Developer Docs
+Flask File Uploads: https://flask.palletsprojects.com/en/2.3.x/patterns/fileuploads/
+Flask CORS Setup: https://flask-cors.readthedocs.io/en/latest/
+Python venv Docs: https://docs.python.org/3/library/venv.html
+requests Python Library: https://requests.readthedocs.io/en/latest/
+SQLAlchemy Docs: https://docs.sqlalchemy.org/en/20/
+Hugging Face Inference API: https://huggingface.co/docs/api-inference/index
+Hugging Face Token Setup: https://huggingface.co/settings/tokens
+FormData Web API: https://developer.mozilla.org/en-US/docs/Web/API/FormData
+JavaScript FormData.append(): https://developer.mozilla.org/en-US/docs/Web/API/FormData/append
+JS try/catch (error handling): https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+Flask render_template: https://flask.palletsprojects.com/en/2.3.x/quickstart/#rendering-templates
+
+# 🙌 Thanks
+
+To Professor Professor Fariha and everyone in the Human-Centered Data Management class.
+This was my favorite project to build.
+
